@@ -1,0 +1,2 @@
+requests==2.18.4
+oandapyV20==0.6.3
