@@ -7,6 +7,26 @@ from oandapyV20.endpoints.pricing import PricingStream
 # from exampleauth import exampleAuth
 from requests.exceptions import ConnectionError
 
+def simplify_dict(d):
+    rerun = True
+    while rerun:
+        rerun = False
+        for k in list(d):
+            v = d[k]
+            if isinstance(v, list):
+                rerun = True
+                for idx, i in enumerate(v):
+                    d["_".join([str(k),str(idx)])] = i
+                del d[k]
+            if isinstance(v, dict):
+                rerun = True
+                # simplify_dict(v)
+                for key, value in v.items():
+                    d["_".join([str(k),str(key)])] = value
+                del d[k]
+    return d
+
+
 '''
 time_point format:
 
@@ -67,24 +87,20 @@ n = 0
 while True:
     try:
         for time_point in api.request(r):
-            print(time_point)
+            print(simplify_dict(time_point))
             n += 1
             if max_records and n >= max_records:
                 r.terminate("maxrecs received: {}".format(max_records))
 
     except V20Error as e:
         # catch API related errors that may occur
-        with open("LOG", "a") as LOG:
-            print("V20Error: {}\n".format(e))
+        print("V20Error: {}\n".format(e))
         break
     except ConnectionError as e:
-        with open("LOG", "a") as LOG:
-            print("Error: {}\n".format(e))
+        print("Error: {}\n".format(e))
     except StreamTerminated as e:
-        with open("LOG", "a") as LOG:
-            print("Stopping: {}\n".format(e))
+        print("Stopping: {}\n".format(e))
         break
     except Exception as e:
-        with open("LOG", "a") as LOG:
-            print("??? : {}\n".format(e))
+        print("??? : {}\n".format(e))
         break
